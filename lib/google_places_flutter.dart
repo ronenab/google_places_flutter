@@ -3,6 +3,7 @@ library google_places_flutter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_places_flutter/model/address_type.dart';
 import 'package:google_places_flutter/model/place_details.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 
@@ -255,6 +256,15 @@ class _GooglePlaceAutoCompleteTextFieldState
 
     prediction.lat = placeDetails.result!.geometry!.location!.lat.toString();
     prediction.lng = placeDetails.result!.geometry!.location!.lng.toString();
+    prediction.addressComponents = placeDetails.result!.addressComponents;
+    if (prediction.addressComponents != null) {
+      for (var address in prediction.addressComponents!) {
+        var type = parseJsonKeyToAddressType(address.types!.first);
+        if (type != null) {
+          prediction.addressTypes[type] = address.longName!;
+        }
+      }
+    }
 
     widget.getPlaceDetailWithLatLng!(prediction);
   }

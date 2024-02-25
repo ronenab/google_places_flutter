@@ -1,3 +1,6 @@
+import 'package:google_places_flutter/model/address_components.dart';
+import 'package:google_places_flutter/model/address_type.dart';
+
 class PlacesAutocompleteResponse {
   List<Prediction>? predictions;
   String? status;
@@ -35,6 +38,8 @@ class Prediction {
   List<String>? types;
   String? lat;
   String? lng;
+  List<AddressComponents>? addressComponents;
+  Map<AddressType, String> addressTypes = {};
 
   Prediction(
       {this.description,
@@ -46,7 +51,8 @@ class Prediction {
       this.terms,
       this.types,
       this.lat,
-      this.lng});
+      this.lng,
+      this.addressComponents});
 
   Prediction.fromJson(Map<String, dynamic> json) {
     description = json['description'];
@@ -63,7 +69,7 @@ class Prediction {
         ? new StructuredFormatting.fromJson(json['structured_formatting'])
         : null;
     if (json['terms'] != null) {
-      terms =[];
+      terms = [];
       json['terms'].forEach((v) {
         terms!.add(new Terms.fromJson(v));
       });

@@ -1,6 +1,5 @@
 library google_places_flutter;
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_places_flutter/model/address_type.dart';
@@ -32,6 +31,7 @@ class GooglePlaceAutoCompleteTextField extends StatefulWidget {
   bool showError;
   double? containerHorizontalPadding;
   double? containerVerticalPadding;
+  final String? errorMessage;
 
   GooglePlaceAutoCompleteTextField(
       {required this.textEditingController,
@@ -46,8 +46,11 @@ class GooglePlaceAutoCompleteTextField extends StatefulWidget {
       this.itemBuilder,
       this.boxDecoration,
       this.isCrossBtnShown = true,
-      this.seperatedBuilder,this.showError=true,this
-      .containerHorizontalPadding,this.containerVerticalPadding});
+      this.seperatedBuilder,
+      this.showError = true,
+      this.containerHorizontalPadding,
+      this.containerVerticalPadding,
+      this.errorMessage});
 
   @override
   _GooglePlaceAutoCompleteTextFieldState createState() =>
@@ -69,48 +72,66 @@ class _GooglePlaceAutoCompleteTextFieldState
 
   CancelToken? _cancelToken = CancelToken();
 
-
-
-
   @override
   Widget build(BuildContext context) {
-
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: widget.containerHorizontalPadding??0, vertical: widget.containerVerticalPadding??0),
-        alignment: Alignment.centerLeft,
-        decoration: widget.boxDecoration ??
-            BoxDecoration(
-                shape: BoxShape.rectangle,
-                border: Border.all(color: Colors.grey, width: 0.6),
-                borderRadius: BorderRadius.all(Radius.circular(10))),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: TextFormField(
-                decoration: widget.inputDecoration,
-                style: widget.textStyle,
-                controller: widget.textEditingController,
-                onChanged: (string) {
-                  subject.add(string);
-                  if (widget.isCrossBtnShown) {
-                    isCrossBtn = string.isNotEmpty ? true : false;
-                    setState(() {});
-                  }
-                },
+    return Column(
+      children: [
+        CompositedTransformTarget(
+          link: _layerLink,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: widget.containerHorizontalPadding ?? 0,
+                vertical: widget.containerVerticalPadding ?? 0),
+            alignment: Alignment.centerLeft,
+            decoration: widget.boxDecoration ??
+                BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    border: Border.all(color: Colors.grey, width: 0.6),
+                    borderRadius: BorderRadius.all(Radius.circular(10))),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    decoration: widget.inputDecoration,
+                    style: widget.textStyle,
+                    controller: widget.textEditingController,
+                    onChanged: (string) {
+                      subject.add(string);
+                      if (widget.isCrossBtnShown) {
+                        isCrossBtn = string.isNotEmpty ? true : false;
+                        setState(() {});
+                      }
+                    },
+                  ),
+                ),
+                (!widget.isCrossBtnShown)
+                    ? SizedBox()
+                    : isCrossBtn && _showCrossIconWidget()
+                        ? IconButton(
+                            onPressed: clearData, icon: Icon(Icons.close))
+                        : SizedBox()
+              ],
+            ),
+          ),
+        ),
+        if (widget.errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                widget.errorMessage!,
+                style: TextStyle(
+                  color: Color.fromRGBO(188,104,97, 1),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
               ),
             ),
-            (!widget.isCrossBtnShown)
-                ? SizedBox()
-                : isCrossBtn && _showCrossIconWidget()
-                    ? IconButton(onPressed: clearData, icon: Icon(Icons.close))
-                    : SizedBox()
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 
@@ -137,7 +158,6 @@ class _GooglePlaceAutoCompleteTextFieldState
       _cancelToken = CancelToken();
     }
 
-
     try {
       Response response = await _dio.get(url);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -158,10 +178,10 @@ class _GooglePlaceAutoCompleteTextFieldState
 
       isSearched = false;
       alPredictions.clear();
-      if (subscriptionResponse.predictions!.length > 0 && (widget.textEditingController.text.toString().trim()).isNotEmpty) {
+      if (subscriptionResponse.predictions!.length > 0 &&
+          (widget.textEditingController.text.toString().trim()).isNotEmpty) {
         alPredictions.addAll(subscriptionResponse.predictions!);
       }
-
 
       this._overlayEntry = null;
       this._overlayEntry = this._createOverlayEntry();
@@ -292,7 +312,7 @@ class _GooglePlaceAutoCompleteTextFieldState
   }
 
   _showSnackBar(String errorData) {
-    if(widget.showError){
+    if (widget.showError) {
       final snackBar = SnackBar(
         content: Text("$errorData"),
       );
@@ -301,7 +321,6 @@ class _GooglePlaceAutoCompleteTextFieldState
       // and use it to show a SnackBar.
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
-
   }
 }
 
